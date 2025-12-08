@@ -1,0 +1,24 @@
+repos:
+  # Ruff - 빠른 린터 및 포매터
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      # 린트 체크
+      - id: ruff
+        args: [--fix]
+      # 포맷팅
+      - id: ruff-format
+
+  # 기본적인 파일 체크
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace    # 공백 제거
+      - id: end-of-file-fixer      # 파일 끝 줄바꿈
+      - id: check-yaml             # YAML 문법 체크
+      - id: check-added-large-files # 큰 파일 방지
+      - id: check-json             # JSON 문법 체크
+      - id: check-toml             # TOML 문법 체크
+      - id: mixed-line-ending      # 줄바꿈 통일
+
+      #기타 코드 검사 추가 안함
