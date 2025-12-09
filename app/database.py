@@ -1,10 +1,14 @@
 from tortoise import Tortoise
+from dotenv import load_dotenv  # env에 정의된 환경변수를 불러오기 위함
+import os  # 환경변수 접근을 위해 불러오기
+
+load_dotenv()
+
+DB_URL = os.getenv("DATABASE_URL")  # 환경변수에서 데이터베이스 주소 가져오기
 
 # 데이터베이스 설정
 TORTOISE_ORM = {
-    "connections": {
-        "default": "postgres://user:dev123@localhost:5432/dbname"  # 데이터 베이스 주소
-    },
+    "connections": {"default": DB_URL},
 }
 
 
