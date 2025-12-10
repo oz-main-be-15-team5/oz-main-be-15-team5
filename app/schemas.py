@@ -31,7 +31,7 @@ class DiaryBase(BaseModel):
 
 class DiaryCreate(DiaryBase):
     pass
-  
+
 class DiaryUpdate(DiaryBase):
     id: int
     created_at: datetime
