@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-router = APIRouet()
+router = APIRouter(prefix="", tags=["인증"])
 
 @router.post("/signup")
 def signup():

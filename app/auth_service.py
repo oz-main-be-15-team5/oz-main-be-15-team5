@@ -1,4 +1,6 @@
 from fastapi import HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from app.models import User
 from app.schemas import UserLogin, Token
 from app.security import verify_password, create_access_token
@@ -6,12 +8,20 @@ from datetime import timedelta
 from typing import Optional
 
 
-async def authenticate_user(username_or_email: str, password: str) -> Optional[User]:
+async def authenticate_user(db: AsyncSession, username_or_email: str, password: str) -> Optional[User]:
     # 사용자 이름, 또는 이메일로 사용자 조회/ 비밀번호 검증
     # 사용자 조회
-    user = await User.get_or_none(username=username_or_email)
+    result = await db.execute(
+        select(User).where(User.username == username_or_email)
+    )
+    user = result.scalars().first()
+
     if not user:
-        user = await User.get_or_none(email=username_or_email)
+        # 사용자 이름으로 찾지 못했으면 이메일로 조회
+        result = await db.execute(
+            select(User).where(User.email == username_or_email)
+        )
+        user = result.scalars().first()
 
     # 사용자가 존재하지 않음
     if not user:
@@ -25,10 +35,10 @@ async def authenticate_user(username_or_email: str, password: str) -> Optional[U
     return user  # 인증 성공 시 User 객체 반환
 
 
-async def login_for_access_token(user_data: UserLogin) -> Token:
+async def login_for_access_token(db: AsyncSession, user_data: UserLogin) -> Token:
     # 로그인 요청 처리 후 JWT 토큰 발급
     # 1. 사용자 인증 시도
-    user = await authenticate_user(user_data.username_or_email, user_data.password)
+    user = await authenticate_user(db, user_data.username_or_email, user_data.password)
 
     if not user:
         # 인증 실패시 에러
