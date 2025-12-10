@@ -7,6 +7,9 @@ from app.db import Base
 # User 모델 정의
 class User(Base):
 
+    #없애면 오류남...
+    __tablename__ = "users"
+
     # user ID
     id = Column(Integer, primary_key=True, index=True)
 
@@ -22,7 +25,7 @@ class User(Base):
 
     # 가입일시 (자동생성)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
+
     # Diary와의 역방향 관계
     diaries = relationship("Diary", back_populates="user")
 
@@ -35,7 +38,7 @@ class Diary(Base):
     __tablename__ = "diaries"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("user.id"))
+    user_id = Column(Integer, ForeignKey("users.id"))
     title = Column(String(200), nullable=False)
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)

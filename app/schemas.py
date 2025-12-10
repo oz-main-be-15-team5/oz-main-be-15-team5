@@ -2,13 +2,26 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 
-
 # 1. 데이터베이스 모델과 직접적으로 연결되지 않는 기본 설정을 위한 클래스
 #class BaseSchema(BaseModel):
     # 유연한 모델 생성을 위해 허용되지 않는 필드를 무시하도록 설정
     # Schema 형식 통일을 위해 주석처리
 #    class Config:
 #        from_attributes = True
+
+
+# 1. 유저 조회 스키마
+class UserBase(BaseModel):
+    # 클라이언트에게 노출되는 사용자 기본 정보
+    # 비밀번호 등의 민감 정보가 포함되어서는 안됨
+    user_id: int
+    username: str
+    email: EmailStr
+    quote_id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 # 2. 회원가입 스키마
@@ -44,15 +57,6 @@ class Token(BaseModel):
 
 # Refresh Token이 포함된 토큰 정보(이게뭔데요)
 
-
-
-# 4. 유저 조회 스키마
-class UserBase(BaseModel):
-    # 클라이언트에게 노출되는 사용자 기본 정보
-    # 비밀번호 등의 민감 정보가 포함되어서는 안됨
-    id: int
-    quote_id: int
-    user_id: int
 
 class DiaryBase(BaseModel):
     title: str
