@@ -14,7 +14,8 @@ from datetime import datetime
 class UserBase(BaseModel):
     # 클라이언트에게 노출되는 사용자 기본 정보
     # 비밀번호 등의 민감 정보가 포함되어서는 안됨
-    user_id: int
+    # user_id: int >> models.User의 id와 일치하도록 필드명을 수정
+    id: int
     username: str
     email: EmailStr
     quote_id: int
@@ -67,8 +68,10 @@ class DiaryCreate(DiaryBase):
 
 class DiaryUpdate(DiaryBase):
     id: int
+    user_id: int
     created_at: datetime
     updated_at: datetime
     
-    class config:
-        orm_mode = True
+    class Config:
+        # orm_mode = True 대신 사용
+        from_attributes = True 

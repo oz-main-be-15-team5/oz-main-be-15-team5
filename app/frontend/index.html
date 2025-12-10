@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인</title>
+    
+    <style> /* 나중에 style시트로 숨길것 */
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1, h2 { color: #1f7e4a; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        div { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="email"], input[type="password"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #1f7e4a;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #1f7e4a;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid;
+            display: none; /* 기본적으로 숨김 */
+        }
+        .success { border-color: #28a745; background-color: #d4edda; color: #155724; }
+        .error { border-color: #dc3545; background-color: #f8d7da; color: #721c24; }
+        .info { border-color: #1f7e4a; background-color: #cce5ff; color: #073e22; }
+        .user-info { border: 1px solid #ccc; padding: 15px; border-radius: 5px; background-color: #e9ecef; margin-top: 20px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>로그인/회원가입</h1>
+
+        <div id="auth-section">
+            <div id="register-section">
+                <h2>1. 회원가입</h2>
+                <div>
+                    <label for="reg-username">사용자 이름:</label>
+                    <input type="text" id="reg-username">
+                </div>
+                <div>
+                    <label for="reg-email">이메일:</label>
+                    <input type="email" id="reg-email">
+                </div>
+                <div>
+                    <label for="reg-password">비밀번호:</label>
+                    <input type="password" id="reg-password">
+                </div>
+                <div>
+                    <label for="reg-password-confirm">비밀번호 확인:</label>
+                    <input type="password" id="reg-password-confirm">
+                </div>
+                <button onclick="registerUser()">회원가입</button>
+                <div id="register-message" class="message"></div>
+            </div>
+
+            <hr style="margin: 30px 0;">
+
+            <div id="login-section">
+                <h2>2. 로그인</h2>
+                <div>
+                    <label for="login-username-email">사용자 이름 또는 이메일:</label>
+                    <input type="text" id="login-username-email">
+                </div>
+                <div>
+                    <label for="login-password">비밀번호:</label>
+                    <input type="password" id="login-password">
+                </div>
+                <button onclick="loginUser()">로그인</button>
+                <div id="login-message" class="message"></div>
+            </div>
+        </div>
+
+        <hr style="margin: 30px 0;">
+
+        <div id="protected-section" class="hidden">
+            <h2>3. 보호된 사용자 정보</h2>
+            <p>로그인 후 접근할 수 있습니다.</p>
+            <button onclick="fetchUserInfo()">내 정보 조회</button>
+            <button onclick="logoutUser()">로그아웃</button>
+            <div id="user-info-display" class="user-info">
+                <strong>ID:</strong> <span id="display-user-id"></span><br>
+                <strong>이름:</strong> <span id="display-username"></span><br>
+                <strong>이메일:</strong> <span id="display-email"></span><br>
+                <strong>가입일:</strong> <span id="display-created-at"></span>
+            </div>
+            <div id="user-info-message" class="message"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000'; // FastAPI 서버 주소
+        let accessToken = localStorage.getItem('accessToken') || null;
+
+        const registerMessageDiv = document.getElementById('register-message');
+        const loginMessageDiv = document.getElementById('login-message');
+        const userInfoMessageDiv = document.getElementById('user-info-message');
+        const authSection = document.getElementById('auth-section');
+        const protectedSection = document.getElementById('protected-section');
+
+        // 메시지 표시 함수
+        function showMessage(divElement, message, type) {
+            divElement.textContent = message;
+            divElement.className = `message ${type}`;
+            divElement.style.display = 'block';
+        }
+
+        function hideMessage(divElement) {
+            divElement.style.display = 'none';
+        }
+
+        // 로그인 상태 업데이트 (UI 변경)
+        function updateLoginStatus() {
+            if (accessToken) {
+                authSection.classList.add('hidden');
+                protectedSection.classList.remove('hidden');
+            } else {
+                authSection.classList.remove('hidden');
+                protectedSection.classList.add('hidden');
+                // 로그아웃 시 사용자 정보 초기화
+                document.getElementById('display-user-id').textContent = '';
+                document.getElementById('display-username').textContent = '';
+                document.getElementById('display-email').textContent = '';
+                document.getElementById('display-created-at').textContent = '';
+                hideMessage(userInfoMessageDiv);
+            }
+        }
+
+        // 초기 로드 시 로그인 상태 확인
+        updateLoginStatus();
+
+        // 회원가입 함수
+        async function registerUser() {
+            hideMessage(registerMessageDiv);
+            const username = document.getElementById('reg-username').value;
+            const email = document.getElementById('reg-email').value;
+            const password = document.getElementById('reg-password').value;
+            const passwordConfirm = document.getElementById('reg-password-confirm').value;
+
+            if (password !== passwordConfirm) {
+                showMessage(registerMessageDiv, '비밀번호와 비밀번호 확인이 일치하지 않습니다.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password, password_confirm: passwordConfirm })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage(registerMessageDiv, `가입 성공: ${data.username}`, 'success');
+                } else {
+                    showMessage(registerMessageDiv, `가입 실패: ${data.detail || response.statusText}`, 'error');
+                }
+            } catch (error) {
+                console.error('회원가입 중 오류 발생:', error);
+                showMessage(registerMessageDiv, '네트워크 오류가 발생했습니다.', 'error');
+            }
+        }
+
+        // 로그인 함수
+        async function loginUser() {
+            hideMessage(loginMessageDiv);
+            const username_or_email = document.getElementById('login-username-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/token`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username_or_email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    accessToken = data.access_token;
+                    localStorage.setItem('accessToken', accessToken);
+                    showMessage(loginMessageDiv, '로그인 성공!', 'success');
+                    updateLoginStatus(); // UI 업데이트
+                } else {
+                    showMessage(loginMessageDiv, `로그인 실패: ${data.detail || response.statusText}`, 'error');
+                }
+            } catch (error) {
+                console.error('로그인 중 오류 발생:', error);
+                showMessage(loginMessageDiv, '네트워크 오류가 발생했습니다.', 'error');
+            }
+        }
+
+        // 로그아웃 함수
+        function logoutUser() {
+            accessToken = null;
+            localStorage.removeItem('accessToken');
+            showMessage(loginMessageDiv, '로그아웃 되었습니다.', 'info');
+            updateLoginStatus(); // UI 업데이트
+            hideMessage(userInfoMessageDiv);
+            document.getElementById('display-user-id').textContent = '';
+            document.getElementById('display-username').textContent = '';
+            document.getElementById('display-email').textContent = '';
+            document.getElementById('display-created-at').textContent = '';
+        }
+
+        // 사용자 정보 조회 함수 (보호됨)
+        async function fetchUserInfo() {
+            hideMessage(userInfoMessageDiv);
+            if (!accessToken) {
+                showMessage(userInfoMessageDiv, '로그인이 필요합니다.', 'error');
+                updateLoginStatus(); // 혹시 모를 상황 대비
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/me`, { // <<< /auth/me로 변경
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    document.getElementById('display-user-id').textContent = data.id;
+                    document.getElementById('display-username').textContent = data.username;
+                    document.getElementById('display-email').textContent = data.email;
+                    document.getElementById('display-created-at').textContent = new Date(data.created_at).toLocaleString();
+                    showMessage(userInfoMessageDiv, '사용자 정보를 성공적으로 가져왔습니다.', 'success');
+                } else {
+                    // 인증 실패 시
+                    if (response.status === 401 || response.status === 403) {
+                        showMessage(userInfoMessageDiv, `인증 오류: ${data.detail || '다시 로그인해주세요.'}`, 'error');
+                        logoutUser(); // 토큰 무효
+                    } else {
+                        showMessage(userInfoMessageDiv, `정보 조회 실패: ${data.detail || response.statusText}`, 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('사용자 정보 조회 중 오류 발생:', error);
+                showMessage(userInfoMessageDiv, '네트워크 오류가 발생했습니다.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

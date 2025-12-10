@@ -5,7 +5,6 @@ from dotenv import load_dotenv  # env에 정의된 환경변수를 불러오기 
 import os  # 환경변수 접근을 위해 불러오기
 
 load_dotenv()
-
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_async_engine(DATABASE_URL)
