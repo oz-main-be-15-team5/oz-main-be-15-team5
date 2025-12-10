@@ -1,11 +1,11 @@
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-from sqlalchemy.orm import datetime
+from datetime import datetime
 from app.db import Base
 
 
-# Tortoise ORM User 모델 정의
-class User(models.Model):
+# User 모델 정의
+class User(Base):
 
     # user ID
     id = Column(Integer, primary_key=True, index=True)
@@ -22,7 +22,8 @@ class User(models.Model):
 
     # 가입일시 (자동생성)
     created_at = Column(DateTime, default=datetime.utcnow)
-
+    
+    # Diary와의 역방향 관계
     diaries = relationship("Diary", back_populates="user")
 
     # 파이썬 객체를 문자열로 반환하도록 정의
