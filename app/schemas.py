@@ -4,15 +4,16 @@ from datetime import datetime
 
 
 # 1. 데이터베이스 모델과 직접적으로 연결되지 않는 기본 설정을 위한 클래스
-class BaseSchema(BaseModel):
+#class BaseSchema(BaseModel):
     # 유연한 모델 생성을 위해 허용되지 않는 필드를 무시하도록 설정
-    class Config:
-        from_attributes = True
+    # Schema 형식 통일을 위해 주석처리
+#    class Config:
+#        from_attributes = True
 
 
 # 2. 회원가입 스키마
 # 상속을 통한 모델 확장
-class UserCreate(BaseSchema):
+class UserCreate(BaseModel):
     # 회원가입을 위한 데이터 검증
     username: str = Field(..., max_length=100)
     email: EmailStr = Field(..., max_length=100)
@@ -26,28 +27,44 @@ class UserCreate(BaseSchema):
 
 
 # 3. 로그인 및 토큰 스키마
-class UserLogin(BaseSchema):
+class UserLogin(BaseModel):
     # 로그인 요청시 입력 데이터
     # 회원가입시 아이디/이메일 작성 요구하기 때문에
     username_or_email: str = Field(...)
     password: str = Field(...)
 
 
-class Token(BaseSchema):
+class Token(BaseModel):
     # JSON 토큰 정보
     access_token: str
     # bearer : 토큰 기본 타입
     token_type: str = "bearer"
 
 
+
 # Refresh Token이 포함된 토큰 정보(이게뭔데요)
 
 
+
 # 4. 유저 조회 스키마
-class UserBase(BaseSchema):
+class UserBase(BaseModel):
     # 클라이언트에게 노출되는 사용자 기본 정보
     # 비밀번호 등의 민감 정보가 포함되어서는 안됨
     id: int
-    username: str
-    email: EmailStr
+    quote_id: int
+    user_id: int
+
+class DiaryBase(BaseModel):
+    title: str
+    content: str
+
+class DiaryCreate(DiaryBase):
+    pass
+
+class DiaryUpdate(DiaryBase):
+    id: int
     created_at: datetime
+    updated_at: datetime
+    
+    class config:
+        orm_mode = True

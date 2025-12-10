@@ -8,7 +8,8 @@ from contextlib import asynccontextmanager
 from app.users import register_user
 from app.schemas import UserCreate, UserBase, UserLogin, Token
 from app.auth_service import login_for_access_token
-
+from app.routers import auth, diary
+from app.db import Base, engine
 
 load_dotenv()
 
@@ -29,9 +30,6 @@ async def lifespan(app: FastAPI):
 
     # 앱 종료시 실행
     await Tortoise.close_connections()
-
-
-# -----------------------
 
 
 app = FastAPI(lifespan=lifespan)
@@ -79,3 +77,10 @@ def read_root():
 @app.get("/items/{item_id}")
 def read_item(item_id: int, q: str = None):
     return {"item_id": item_id, "q": q}
+
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="My Diary Project")
+
+app.include_router(auth.router, prefix="/auth", tags=["Auth"])
+app.include_router(diary.router, prefix="/diaries", tags=["Diaries"])
