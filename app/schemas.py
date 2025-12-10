@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
+from datetime import datetime
 
 
 class UserBase(BaseModel):
@@ -24,5 +25,17 @@ class BookmarkRead(BaseModel):
     quote_id: int
     user_id: int
 
-    class Config:
+class DiaryBase(BaseModel):
+    title: str
+    content: str
+
+class DiaryCreate(DiaryBase):
+    pass
+  
+class DiaryUpdate(DiaryBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    
+    class config:
         orm_mode = True
