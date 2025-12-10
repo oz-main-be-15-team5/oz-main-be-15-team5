@@ -1,14 +1,23 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, UniqueConstraint
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    ForeignKey,
+    DateTime,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db import Base
+
 
 # -------------------------
 # User 모델 정의
 # -------------------------
 class User(Base):
 
-    #없애면 오류남...
+    # 없애면 오류남...
     __tablename__ = "users"
 
     # user ID
@@ -33,6 +42,8 @@ class User(Base):
     # 파이썬 객체를 문자열로 반환하도록 정의
     def __str__(self):
         return self.username
+
+
 # -------------------------
 
 
@@ -43,17 +54,20 @@ class Quote(Base):
     __tablename__ = "quotes"
 
     # quote ID
-    id = Column(Integer, primary_key=True, index =True)
+    id = Column(Integer, primary_key=True, index=True)
 
-    #명언 내용
-    content = Column(Text, nullable = False)
+    # 명언 내용
+    content = Column(Text, nullable=False)
 
-    #명언 작가(출처)
+    # 명언 작가(출처)
     author = Column(String(100), nullable=True)
 
-    #북마크와 역방향 관계
+    # 북마크와 역방향 관계
     bookmarks = relationship("UserQuoteBookmark", back_populates="quote")
+
+
 # -------------------------
+
 
 # -------------------------
 # 북마크 모델 정의
@@ -74,21 +88,23 @@ class UserQuoteBookmark(Base):
     user = relationship("User", back_populates="bookmarks")
     quote = relationship("Quote", back_populates="bookmarks")
 
-    #북마크 중복 방지
+    # 북마크 중복 방지
     __table_args__ = (
-        UniqueConstraint('user_id', 'quote_id', name='uq_user_quote_bookmark'),
+        UniqueConstraint("user_id", "quote_id", name="uq_user_quote_bookmark"),
     )
+
+
 # -------------------------
 
 
 class Diary(Base):
     __tablename__ = "diaries"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     title = Column(String(200), nullable=False)
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     user = relationship("User", back_populates="diaries")

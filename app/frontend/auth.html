@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>로그인</title>
+    <title>회원가입/로그인</title>
     
     <style> /* 나중에 style시트로 숨길것 */
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; color: #333; }
@@ -108,6 +108,16 @@
                 <strong>가입일:</strong> <span id="display-created-at"></span>
             </div>
             <div id="user-info-message" class="message"></div>
+
+            <button onclick="goToQuotePage()" style="background-color: #007bff;">
+                📜 오늘의 명언 보러가기
+            </button>
+
+            <hr style="margin: 15px 0;">
+    
+            <button onclick="fetchUserInfo()">내 정보 조회</button>
+            <button onclick="logoutUser()">로그아웃</button>
+            </div>
         </div>
     </div>
 
@@ -264,6 +274,17 @@
             } catch (error) {
                 console.error('사용자 정보 조회 중 오류 발생:', error);
                 showMessage(userInfoMessageDiv, '네트워크 오류가 발생했습니다.', 'error');
+            }
+        }
+        
+        // 명언 페이지로 이동하는 함수
+        function goToQuotePage() {
+            // 세션 토큰이 있는지 다시 확인하고 이동
+            if (localStorage.getItem('accessToken')) {
+                window.location.href = 'quote.html';
+            } else {
+                alert("로그인 세션이 만료되었거나 필요합니다.");
+                updateLoginStatus();
             }
         }
     </script>

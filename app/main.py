@@ -1,19 +1,21 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware # CORS 미들웨어 임포트
+from fastapi.middleware.cors import CORSMiddleware  # CORS 미들웨어 임포트
 from dotenv import load_dotenv
-from app.routers import auth, diary
+from app.routers import auth, diary, quote
 
 from app.db import Base, engine
 
 
 load_dotenv()
 
+
 # 비동기 DB 스키마 생성
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
 
 # -----------------------
 # 데이터베이스 연결
@@ -37,20 +39,21 @@ app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5500", 
+        "http://localhost:5500",
         "http://127.0.0.1:5500",
         "http://localhost:8000",
-        "http://127.0.0.1:8000"
+        "http://127.0.0.1:8000",
     ],
     allow_credentials=True,
-    allow_methods=["*"], # 모든 HTTP 메서드를 허용한다.
-    allow_headers=["*"], # 모든 헤더를 허용한다.
+    allow_methods=["*"],  # 모든 HTTP 메서드를 허용한다.
+    allow_headers=["*"],  # 모든 헤더를 허용한다.
 )
 # -----------------------
 
 # 라우터 포함
 app.include_router(auth.router, prefix="/auth", tags=["인증"])
 app.include_router(diary.router, prefix="/diaries", tags=["Diaries"])
+app.include_router(quote.router, prefix="/quote", tags=["명언"])
 
 
 @app.get("/")
@@ -68,4 +71,3 @@ def read_item(item_id: int, q: str = None):
 
 # app 객체 재정의로 충돌
 # app = FastAPI(title="My Diary Project")
-

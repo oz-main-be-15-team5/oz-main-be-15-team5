@@ -13,6 +13,7 @@ AsyncSessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=e
 # 동기/비동기 혼용으로 오류가 나서 통일했어요
 Base = declarative_base()
 
+
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSessionLocal() as db:
         yield db
