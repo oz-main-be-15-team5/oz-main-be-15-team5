@@ -33,9 +33,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-# 라우터 정의
-auth_router = APIRouter(prefix="/auth", tags=["인증"])
-
 
 # -----------------------
 # 회원가입 : 새 사용자 등록
