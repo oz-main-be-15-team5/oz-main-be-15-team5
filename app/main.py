@@ -1,47 +1,79 @@
-from fastapi import FastAPI
-from tortoise import Tortoise, fields
-from tortoise.models import Model
+from fastapi import FastAPI, APIRouter, HTTPException
+from tortoise import Tortoise
 import os
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
 
+# 비밀번호 해싱을 위한 import
+from app.users import register_user
+from app.schemas import UserCreate, UserBase, UserLogin, Token
+from app.auth_service import login_for_access_token
+
+
 load_dotenv()
 
 
+# -----------------------
+# 데이터베이스 연결
 # 모델 정의
-class User(Model):
-    id = fields.IntField(pk=True)
-    name = fields.CharField(max_length=50)
-
-
+# -----------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: 앱 시작시 실행
     db_url = os.getenv("DATABASE_URL")
 
-    await Tortoise.init(db_url=db_url, modules={"models": ["app.main"]})
+    await Tortoise.init(db_url=db_url, modules={"models": ["app.models"]})
     await Tortoise.generate_schemas()
-    print("데이터베이스 연결 완료")
 
     yield  # 앱실행
 
     # 앱 종료시 실행
     await Tortoise.close_connections()
-    print("데이터베이스 연결 종료")
+
+
+# -----------------------
 
 
 app = FastAPI(lifespan=lifespan)
+auth_router = APIRouter(prefix="/auth", tags=["인증"])
+
+
+# -----------------------
+# 회원가입 : 새 사용자 등록
+# -----------------------
+@auth_router.post("/register", response_model=UserBase)
+async def handle_user(user_data: UserCreate):
+    try:
+        # 비밀번호 해싱 및 DB저장
+        new_user_db = await register_user(user_data)
+        return new_user_db
+
+    except Exception as e:
+        # UNIQUE 예외처리(외 DB제약 조건 위반)
+        raise HTTPException(status_code=500, detail=f"사용자 등록 실패: {e}")
+
+
+app.include_router(auth_router)
+
+# -----------------------
+
+
+# -----------------------
+# 로그인 앤드포인트 추가
+# -----------------------
+@auth_router.post("/token", response_model=Token)
+async def login(user_data: UserLogin):
+    # 사용자 인증 후 JWT 토큰 반환
+    token = await login_for_access_token(user_data)
+    return token
+
+
+# -----------------------
 
 
 @app.get("/")
 def read_root():
     return {"message": "Hello World"}
-
-
-@app.post("/users/")
-async def create_user(name: str):
-    user = await User.create(name=name)
-    return {"id": user.id, "name": user.name}
 
 
 @app.get("/items/{item_id}")

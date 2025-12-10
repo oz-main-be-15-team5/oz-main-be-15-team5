@@ -12,6 +12,7 @@ dependencies = [
     "sqlalchemy>=2.0.44",
     "tortoise-orm>=0.25.1",
     "uvicorn[standard]>=0.38.0",
+    "bcrypt>=4.1.2"
 ]
 # -dev 개발 의존성 추가
 
