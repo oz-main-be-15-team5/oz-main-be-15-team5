@@ -9,6 +9,19 @@ from datetime import datetime
 #    class Config:
 #        from_attributes = True
 
+
+# --------------------------
+# 1. 유저 조회 스키마
+# --------------------------
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
 # --------------------------
 # 1. 유저 조회 스키마
 # --------------------------
@@ -19,12 +32,14 @@ class UserBase(BaseModel):
     id: int
     username: str
     email: EmailStr
-    quote_id: int
     created_at: datetime
 
     class Config:
         from_attributes = True
         # --------------------------
+
+class UserWithBookmark(UserBase):
+    quote_id: int | None = None
 
 # --------------------------
 # 2. 회원가입 스키마
@@ -65,7 +80,7 @@ class Token(BaseModel):
 class QuoteBase(BaseModel):
     id: int
     content: str
-    author: str
+    author: str | None = None
 
     class Config:
         from_attributes = True
@@ -94,3 +109,11 @@ class DiaryUpdate(DiaryBase):
     class Config:
         # orm_mode = True 대신 사용
         from_attributes = True
+
+
+class ReflectionQuestionResponse(BaseModel):
+    id: int
+    question: str
+    
+    class Config:
+        orm_mode = True

@@ -39,6 +39,9 @@ class User(Base):
     # Diary와의 역방향 관계
     diaries = relationship("Diary", back_populates="user")
 
+    # 북마크와의 역방향 관계
+    bookmarks = relationship("UserQuoteBookmark", back_populates="user")
+
     # 파이썬 객체를 문자열로 반환하도록 정의
     def __str__(self):
         return self.username

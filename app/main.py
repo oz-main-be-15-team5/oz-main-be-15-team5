@@ -4,9 +4,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware  # CORS 미들웨어 임포트
 from dotenv import load_dotenv
 from app.routers import auth, diary, quote
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import Depends
 
 from app.db import Base, engine
-
 
 load_dotenv()
 
@@ -51,29 +52,18 @@ app.add_middleware(
 # -----------------------
 
 # 라우터 포함
-app.include_router(auth.router, prefix="/auth", tags=["인증"])
-app.include_router(diary.router, prefix="/diaries", tags=["Diaries"])
-app.include_router(quote.router, prefix="/quote", tags=["명언"])
+app.include_router(auth.router)
+# app.include_router(diary.router)
+app.include_router(quote.router)
+# app.include_router(reflection.router)
 
 
 @app.get("/")
 def read_root():
     return {"message": "Hello World"}
 
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str = None):
-    return {"item_id": item_id, "q": q}
-
-
 # 비동기 환경에서 동기 방식 호출이라 충돌
 # Base.metadata.create_all(bind=engine)
 
 # app 객체 재정의로 충돌
 # app = FastAPI(title="My Diary Project")
-
-
-# 테스트코드 테스트
-@app.get("/")
-async def root():
-    return {"message": "Tomato"}

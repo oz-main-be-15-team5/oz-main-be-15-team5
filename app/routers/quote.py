@@ -6,8 +6,9 @@ from app import models, schemas
 from app.dependencies import get_current_user
 import random # 파이썬 자체에서 랜덤처리를 하기 위해서 호출
 
-
+print("🔥 LOADED QUOTE ROUTER FILE:", __file__)
 router = APIRouter(prefix="/quotes", tags=["명언"])
+print("🔥 QUOTE ROUTER INITIALIZED")
 
 
 # --------------------------
@@ -55,13 +56,14 @@ async def get_random_quote(
         is_bookmarked=is_bookmarked
     )
 # --------------------------
+print("🔥 RANDOM QUOTE HANDLER REGISTERED")
 
 
 # --------------------------
 # 북마크 추가/해제
 # --------------------------
 @router.post("/{quote_id}/bookmark", status_code=status.HTTP_200_OK)
-async def toggle_bookmakr(
+async def toggle_bookmark(
     quote_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
@@ -98,12 +100,12 @@ async def toggle_bookmakr(
                 detail="북마크 추가중 오류가 발생했습니다."
             )
         
-
+print("🔥 BOOKMARK HANDLER REGISTERED")
 
 # --------------------------
 # 북마크 조회
 # --------------------------
-@router.get("/bookmakrs", response_model=list[schemas.QuoteBase])
+@router.get("/bookmarks", response_model=list[schemas.QuoteBase])
 async def list_bookmarks(
     db: AsyncSession = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
@@ -122,3 +124,4 @@ async def list_bookmarks(
 
     return bookmakred_quotes
 # --------------------------
+print("🔥 BOOKMARK LIST HANDLER REGISTERED")
