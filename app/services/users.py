@@ -1,6 +1,6 @@
 # schemas.py 파일에서 정의한 모델 임포트
-from .schemas import UserCreate  # 스키마 임포트
-from .security import get_password_hash
+from ..schemas import UserCreate  # 스키마 임포트
+from ..security import get_password_hash
 from app.models import User
 from sqlalchemy.ext.asyncio import AsyncSession
 

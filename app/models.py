@@ -77,7 +77,7 @@ class UserQuoteBookmark(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     # FK : 어떤 사용자가 북마크했는가
-    user_id = Column(Integer, ForeignKey("user.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     # FK: 어떤 명언을 북마크했나
     quote_id = Column(Integer, ForeignKey("quotes.id"), nullable=False)
 
@@ -108,3 +108,10 @@ class Diary(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user = relationship("User", back_populates="diaries")
+
+
+class ReflectionQuestion(Base):
+    __tablename__ = "reflection_questions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    question = Column(String(255), nullable=False)

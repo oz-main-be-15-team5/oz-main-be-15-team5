@@ -71,3 +71,9 @@ def read_item(item_id: int, q: str = None):
 
 # app 객체 재정의로 충돌
 # app = FastAPI(title="My Diary Project")
+
+
+# 테스트코드 테스트
+@app.get("/")
+async def root():
+    return {"message": "Tomato"}
