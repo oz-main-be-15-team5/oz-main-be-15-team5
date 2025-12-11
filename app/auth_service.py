@@ -8,19 +8,17 @@ from datetime import timedelta
 from typing import Optional
 
 
-async def authenticate_user(db: AsyncSession, username_or_email: str, password: str) -> Optional[User]:
+async def authenticate_user(
+    db: AsyncSession, username_or_email: str, password: str
+) -> Optional[User]:
     # 사용자 이름, 또는 이메일로 사용자 조회/ 비밀번호 검증
     # 사용자 조회
-    result = await db.execute(
-        select(User).where(User.username == username_or_email)
-    )
+    result = await db.execute(select(User).where(User.username == username_or_email))
     user = result.scalars().first()
 
     if not user:
         # 사용자 이름으로 찾지 못했으면 이메일로 조회
-        result = await db.execute(
-            select(User).where(User.email == username_or_email)
-        )
+        result = await db.execute(select(User).where(User.email == username_or_email))
         user = result.scalars().first()
 
     # 사용자가 존재하지 않음

@@ -1,24 +1,21 @@
-import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, APIRouter, HTTPException, Depends
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware  # CORS 미들웨어 임포트
 from dotenv import load_dotenv
-from sqlalchemy.ext.asyncio import AsyncSession
+from app.routers import auth, diary, quote
 
-from app.users import register_user
-from app.schemas import UserCreate, Token, UserLogin
-from app.auth_service import login_for_access_token # login_for_access_token 임포트
-# 충돌 해결하면 주석처리한걸로 바꿔주세용
-# from app.routers import auth, diary
-from app.routers import diary
-from app.db import Base, engine, get_db
+from app.db import Base, engine
+
 
 load_dotenv()
+
 
 # 비동기 DB 스키마 생성
 async def init_db():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
 
 # -----------------------
 # 데이터베이스 연결
@@ -33,38 +30,31 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-# 라우터 정의
-auth_router = APIRouter(prefix="/auth", tags=["인증"])
-
 
 # -----------------------
-# 회원가입 : 새 사용자 등록
+# CORS(Cross-Origin Resource Sharing) 설정 추가
+# 보안상의 이유로, 웹 브라우저는 다른 도메인, 포트, 프로토콜을 가진 서버(출처, Origin)로 요청을 보낼 때 기본적으로 이를 제한합니다. 이를 **동일 출처 정책(Same-Origin Policy)**이라고 합니다.
+# 예를 들어, 프론트엔드 웹사이트가 http://localhost:3000에서 실행되고 있고, 백엔드 API 서버가 http://localhost:8000에서 실행된다면, 브라우저는 이 요청을 교차 출처(Cross-Origin) 요청으로 간주하고 보안상의 이유로 차단합니다.
 # -----------------------
-@auth_router.post("/register", response_model=UserCreate)
-async def handle_user_register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
-    try:
-        # 비밀번호 해싱 및 DB저장
-        new_user_db = await register_user(user_data)
-        return new_user_db
-
-    except Exception as e:
-        # UNIQUE 예외처리(외 DB제약 조건 위반)
-        raise HTTPException(status_code=500, detail=f"사용자 등록 실패: {e}")
-# -----------------------
-
-
-# -----------------------
-# 로그인 앤드포인트 추가
-# -----------------------
-@auth_router.post("/token", response_model=Token)
-async def login(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
-    # 사용자 인증 후 JWT 토큰 반환
-    token = await login_for_access_token(db, user_data)
-    return token
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],  # 모든 HTTP 메서드를 허용한다.
+    allow_headers=["*"],  # 모든 헤더를 허용한다.
+)
 # -----------------------
 
 # 라우터 포함
-app.include_router(auth_router)
+app.include_router(auth.router, prefix="/auth", tags=["인증"])
+app.include_router(diary.router, prefix="/diaries", tags=["Diaries"])
+app.include_router(quote.router, prefix="/quote", tags=["명언"])
+
 
 @app.get("/")
 def read_root():
@@ -75,12 +65,9 @@ def read_root():
 def read_item(item_id: int, q: str = None):
     return {"item_id": item_id, "q": q}
 
+
 # 비동기 환경에서 동기 방식 호출이라 충돌
 # Base.metadata.create_all(bind=engine)
 
 # app 객체 재정의로 충돌
 # app = FastAPI(title="My Diary Project")
-
-# auth 라우터가 main.py에 구현되어 있어서 충돌
-# app.include_router(auth.router, prefix="/auth", tags=["Auth"])
-app.include_router(diary.router, prefix="/diaries", tags=["Diaries"])
